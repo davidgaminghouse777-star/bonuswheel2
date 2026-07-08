@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Gaming House - Lucky Wheel</title>
+    <style>
+        /* --- Premium Casino Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle, #2a0845 0%, #170224 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* --- Background Watermark --- */
+        .watermark {
+            position: absolute;
+            font-size: 8vw;
+            font-weight: 900;
+            color: rgba(255, 215, 0, 0.03);
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+            user-select: none;
+        }
+
+        /* --- Main Game Container --- */
+        .game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .logo-header {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* --- Wheel Wrapper & Indicator --- */
+        .wheel-wrapper {
+            position: relative;
+            padding: 15px;
+            background: radial-gradient(circle, #ffd700 0%, #b8860b 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* Top Indicator Arrow */
+        .arrow {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid #ff1493;
+            filter: drop-shadow(0px 4px 5px rgba(0,0,0,0.6));
+            z-index: 10;
+        }
+
+        .arrow-gold-trim {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 23px solid transparent;
+            border-right: 23px solid transparent;
+            border-top: 40px solid #ffd700;
+            z-index: 9;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 50%;
+            background-color: #111;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* --- Center Spin Button --- */
+        .spin-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, #ffd700 0%, #d4af37 60%, #8a6d1c 100%);
+            border: 4px solid #fff;
+            border-radius: 50%;
+            color: #170224;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.4);
+            transition: all 0.2s ease;
+            outline: none;
+            z-index: 12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spin-btn:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6), 0 0 30px rgba(255,215,0,0.8);
+        }
+
+        .spin-btn:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+
+        .spin-btn:disabled {
+            background: #555;
+            color: #888;
+            border-color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* --- Premium Modals / Popups --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(12, 3, 20, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-box {
+            background: linear-gradient(135deg, #2a0845 0%, #1c0030 100%);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.9);
+            animation: modalPop 0.3s forwards ease-out;
+        }
+
+        @keyframes modalPop {
+            to { transform: scale(1); }
+        }
+
+        .modal-box h2 {
+            color: #ffd700;
+            font-size: 2rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .modal-box p {
+            color: #ddd;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #d4af37;
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 25px;
+            outline: none;
+        }
+
+        .modal-box input:focus {
+            border-color: #ff1493;
+            box-shadow: 0 0 10px rgba(255, 20, 147, 0.5);
+        }
+
+        .modal-btn {
+            background: linear-gradient(to right, #ffd700, #b8860b);
+            color: #111;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Utility Hide Class */
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="watermark">David Gaming House</div>
+
+    <div class="game-container">
+        <div class="logo-header">David Gaming House</div>
+        
+        <div class="wheel-wrapper">
+            <div class="arrow-gold-trim"></div>
+            <div class="arrow"></div>
+            <canvas id="wheelCanvas" width="500" height="500"></canvas>
+            <button class="spin-btn" id="spinBtn" disabled>SPIN</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="regModal">
+        <div class="modal-box">
+            <h2>Welcome Menu</h2>
+            <p>Enter your username to access the Lucky Draw Wheel.</p>
+            <input type="text" id="playerNameInput" placeholder="Player Name" autocomplete="off">
+            <button class="modal-btn" onclick="registerPlayer()">Proceed</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="resultModal">
+        <div class="modal-box">
+            <h2 id="resultTitle">Winner!</h2>
+            <p id="resultMessage">Congratulations!</p>
+            <button class="modal-btn" onclick="closeResultModal()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & Data Setup ---
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        
+        let playerName = "";
+        let isSpinning = false;
+        
+        // Wheel Data Segments (Ordered clockwise)
+        const segments = [
+            { label: "10%", type: "win" },
+            { label: "TRY AGAIN", type: "lose" },
+            { label: "20%", type: "win" },
+            { label: "30%", type: "win" },
+            { label: "TRY AGAIN", type: "lose" },
+            { label: "40%", type: "win" },
+            { label: "50%", type: "win" },
+            { label: "TRY AGAIN", type: "lose" },
+            { label: "75%", type: "win" },
+            { label: "100%", type: "win" }
+        ];
+
+        const numSegments = segments.length;
+        const segmentAngle = (2 * Math.PI) / numSegments;
+        
+        let currentRotation = 0; // Tracking total rotation in radians
+
+        // --- Draw the Casino Wheel ---
+        function drawWheel() {
+            const radius = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(currentRotation);
+
+            for (let i = 0; i < numSegments; i++) {
+                const angle = i * segmentAngle;
+                
+                // Luxury color cycling
+                if (segments[i].type === "lose") {
+                    ctx.fillStyle = "#1c0030"; // Dark Velvet Purple
+                } else if (i % 2 === 0) {
+                    ctx.fillStyle = "#8b0000"; // Deep Crimson
+                } else {
+                    ctx.fillStyle = "#4a0e4e"; // Royal Plum
+                }
+
+                // Slice sector arc
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius - 10, angle, angle + segmentAngle);
+                ctx.lineTo(0, 0);
+                ctx.fill();
+
+                // Gold Divider lines
+                ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Text Formatting
+                ctx.save();
+                ctx.fillStyle = "#ffd700"; // Metallic Gold Text
+                if(segments[i].type === "lose") ctx.fillStyle = "#ffffff"; // White text for try again
+                
+                ctx.rotate(angle + segmentAngle / 2);
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.font = "bold 18px 'Segoe UI', Arial";
+                
+                // Light glow drop-shadow effect for elements
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+                
+                ctx.fillText(segments[i].label, radius - 35, 0);
+                ctx.restore();
+            }
+
+            // Subtle inner ring contrast accent
+            ctx.beginPath();
+            ctx.arc(0,0, radius - 8, 0, 2*Math.PI);
+            ctx.strokeStyle = "#ffd700";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Initial paint execution
+        drawWheel();
+
+        // --- Player Entry Handler ---
+        function registerPlayer() {
+            const input = document.getElementById('playerNameInput');
+            if (input.value.trim() === "") {
+                alert("Please enter a valid name to continue.");
+                return;
+            }
+            playerName = input.value.trim();
+            document.getElementById('regModal').classList.add('hidden');
+            spinBtn.disabled = false;
+        }
+
+        // Allow entering by pressing "Enter" key
+        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') registerPlayer();
+        });
+
+        // --- Spin Mechanics Logic ---
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            // Generate physics vectors: Force high spins, randomize target stop offsets
+            const minRevolutions = 5; 
+            const extraDegrees = Math.random() * 360;
+            const totalSpinAngle = (minRevolutions * 360 + extraDegrees) * (Math.PI / 180);
+            
+            let start = null;
+            const duration = 5000; // 5 seconds spin time duration
+
+            function animationLoop(timestamp) {
+                if (!start) start = timestamp;
+                const elapsed = timestamp - start;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing formula (Quintic Ease-Out) for smooth high-end slow down
+                const easeOut = 1 - Math.pow(1 - progress, 5);
+                
+                // Dynamic progression step update
+                const stepRotation = easeOut * totalSpinAngle;
+                
+                // Redraw state relative to base memory pointer
+                currentRotation = stepRotation % (2 * Math.PI);
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animationLoop);
+                } else {
+                    processLandingIndex();
+                }
+            }
+            requestAnimationFrame(animationLoop);
+        }
+
+        spinBtn.addEventListener('click', spinWheel);
+
+        // --- Read Result Vector ---
+        function processLandingIndex() {
+            // Map Canvas standard right-axis 0 to mathematical Top-Indicator Center (-90 degrees)
+            let relativeAngle = (3 * Math.PI / 2) - currentRotation;
+            
+            // Normalize back inside absolute bounds [0, 2*PI]
+            while (relativeAngle < 0) {
+                relativeAngle += 2 * Math.PI;
+            }
+            while (relativeAngle >= 2 * Math.PI) {
+                relativeAngle -= 2 * Math.PI;
+            }
+
+            // Calculate precise slice collision index 
+            const landingIndex = Math.floor(relativeAngle / segmentAngle) % numSegments;
+            const winResult = segments[landingIndex];
+
+            // Render result strings inside modal overlays
+            const titleElement = document.getElementById('resultTitle');
+            const msgElement = document.getElementById('resultMessage');
+
+            if (winResult.type === "win") {
+                titleElement.innerText = "⭐ CONGRATULATIONS! ⭐";
+                titleElement.style.color = "#ffd700";
+                msgElement.innerHTML = `Excellent win, <strong>${playerName}</strong>!<br>You landed on and unlocked the bonus tier: <strong>${winResult.label}</strong>!`;
+            } else {
+                titleElement.innerText = "UNLUCKY!";
+                titleElement.style.color = "#ff1493";
+                msgElement.innerHTML = `Better luck next time, <strong>${playerName}</strong>!<br>Don't stop now, give it another spin!`;
+            }
+
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+            isSpinning = false;
+            spinBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>
